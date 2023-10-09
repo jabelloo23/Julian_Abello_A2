@@ -1,0 +1,182 @@
+---
+title: "Deliverable_2"
+author: "Julian Abello Orozco"
+date: "2023-10-08"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+## KNN, Linear regression, and multilinear regression, In a diabetes_012 Dataset
+
+### Part 1: Data exploration and data wrangling
+
+In this R Markdown document i will use a data set containing 22 variables that contains 253680 objects. With this dataset I will show how to apply data analysis, Knn, linear and miltilinear regression.
+
+In order to start, it is necessary to load the data set into the program as shown in the following section of the code.
+
+```{r include=FALSE}
+library (tidyverse)
+library(dplyr)
+library(caret)
+library(class)
+library(gmodels)
+```
+
+```{r}
+
+
+folder <- dirname(rstudioapi :: getSourceEditorContext()$path)
+
+parentFolder <- dirname (folder)
+data_set_dia <-
+  read.csv(paste0(parentFolder,"/dataset/diabetes_012_health_indicators_BRFSS2015.csv"))
+```
+
+After loading our data set we must inspect and analyze the information contained in this file. In the following image we can see the variables and brief information about their content.
+
+![Characteristics of the data set variables](images/Captura%20de%20pantalla%202023-10-08%20125457.jpg){width="300"}
+
+later using the function `psych` we can extract a statistical analysis of the 22 variables contained in the dataset, which include the mean, standard deviation, minimum and maximum range, among others.
+
+```{r ,include=FALSE}
+library(psych)
+psych::describe(data_set_dia,fast = TRUE)
+```
+
+Finally, using the `mutate` function we are going to transform all the data that are not "= 0" in the variable Diabetes_012, then we will show in a small table how many data were classified as "0" or "1"" in this variable of our set of data
+
+```{r }
+test_diabetes<- data_set_dia %>% mutate(Diabetes_012 = ifelse(Diabetes_012!= "0", "1",Diabetes_012))
+```
+
+```{r,include=FALSE}
+Conteo_Diabetes<- table(test_diabetes$Diabetes_012)
+```
+
+```{r}
+Conteo_Diabetes
+
+```
+
+### Part 2: KNN
+
+In this part of the document we will use the KNN predictive method, for this we will use 3 different variables to achieve the predictions. First, through a stratified sample, we will take approximately 1% of the data to train our models.
+
+```{r}
+ss_diabetes <- test_diabetes %>%
+  group_by(Diabetes_012) %>%
+  sample_n(1269, replace = TRUE) %>%
+  ungroup()
+```
+
+```{r,include=FALSE}
+Conteo_ss_Diabetes<- table(ss_diabetes$Diabetes_012)
+```
+
+```{r}
+Conteo_ss_Diabetes
+```
+
+At this point we will find the appropriate number of "K" and we will train the Knn model to predict Diabetes
+
+```{r}
+set.seed(123)  
+indices <- createFolds(ss_diabetes$Diabetes_012, k = 10)
+k_values <- 1:20
+resultados <- data.frame(K = k_values, Error = numeric(length(k_values)))
+for (k in k_values) {
+  errores <- c()
+
+  for (fold in 1:10) {
+    train_data_ss_diabetes <- ss_diabetes[-indices[[fold]], ]
+    test_data_ss_diabetes <- ss_diabetes[indices[[fold]], ]
+    
+  prediction<- knn(train = train_data_ss_diabetes[, -ncol(train_data_ss_diabetes)],
+                 test = test_data_ss_diabetes[,-ncol(test_data_ss_diabetes)],
+                 cl = train_data_ss_diabetes$Diabetes_012, 
+                  k = k)
+  error <- mean(prediction != test_data_ss_diabetes$Diabetes_012)
+    errores <- c(errores, error)
+    
+  }
+  error_promedio <- mean(errores)
+   resultados[k, "Error"] <- error_promedio
+}
+ mejor_k <- k_values[which.min(resultados$Error)]
+ cat("El valor optimo de K es:", mejor_k, "\n")
+ 
+ Prediction_diabetes <- knn(train = ss_diabetes[, -ncol(ss_diabetes)],
+                    test = ss_diabetes[, -ncol(ss_diabetes)],
+                    cl = ss_diabetes$Diabetes_012,
+                    k = mejor_k)
+ CrossTable(x = ss_diabetes$Diabetes_012, y = Prediction_diabetes
+           , prop.chisq = F)
+```
+
+After training our knn model with all the variables from the data set, 5 of these variables were eliminated and the knn and caret model were retrained to find the optimal value of "k", that is, we will have 16 predictor variables taking into account Note that we removed 5 and we have a target variable.
+
+```{r}
+ss_diabetes_5predictors <-ss_diabetes %>%
+  select(Diabetes_012,HighBP,HighChol,CholCheck,BMI,Smoker,Stroke,HeartDiseaseorAttack,PhysActivity,Fruits,Veggies,HvyAlcoholConsump,GenHlth,DiffWalk,Sex,Age,Income)
+
+```
+
+After selecting the predictor variables we will repeat the same step to train the model and find the appropriate value of "k"
+
+```{r,include=FALSE}
+set.seed(123)  
+indices_1<- createFolds(ss_diabetes_5predictors$Diabetes_012, k = 5)
+k_values_1 <- 1:40
+resultados_1<- data.frame(K = k_values_1, Error_1 = numeric(length(k_values_1)))
+for (k_1 in k_values_1) {
+  errores_1 <- c()
+
+  for (fold in 1:10) {
+    train_data_ss_diabetes5 <- ss_diabetes_5predictors[-indices[[fold]], ]
+    test_data_ss_diabetes5 <- ss_diabetes_5predictors[indices[[fold]], ]
+    
+  prediction_1<- knn(train = train_data_ss_diabetes5[, -ncol(train_data_ss_diabetes5)],
+                 test = test_data_ss_diabetes5[,-ncol(test_data_ss_diabetes5)],
+                 cl = train_data_ss_diabetes5$Diabetes_012, 
+                  k = k_1)
+  error_1 <- mean(prediction_1 != test_data_ss_diabetes5$Diabetes_012)
+    errores_1 <- c(errores_1, error_1)
+    
+  }
+  error_promedio_1 <- mean(errores_1)
+   resultados_1[k_1, "Error"] <- error_promedio_1
+}
+ mejor_k_1 <- k_values_1[which.min(resultados_1$Error_1)]
+ cat("El valor optimo de K es:", mejor_k_1, "\n")
+
+ 
+```
+
+```{r}
+ 
+ Prediction_diabetes5 <- knn(train = ss_diabetes_5predictors[, -ncol(ss_diabetes_5predictors)],
+                    test = ss_diabetes_5predictors[, -ncol(ss_diabetes_5predictors)],
+                    cl = ss_diabetes_5predictors$Diabetes_012,
+                    k = 5)
+CrossTable(x = ss_diabetes_5predictors$Diabetes_012, y = Prediction_diabetes5
+           , prop.chisq = F)
+```
+
+```{r}
+ss_diabetes_5predictors <-ss_diabetes %>%
+  select()
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
