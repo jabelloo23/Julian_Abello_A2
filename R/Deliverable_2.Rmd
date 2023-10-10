@@ -636,7 +636,7 @@ print(model)
 
 The analysis between the advantages and disadvantages of the k-Nearest Neighbors (KNN) algorithm and linear and multiline regression models is essential to understand which of them is more suitable for a given prediction problem. Below is a comparative analysis:
 
-Advantages of KNN:
+#### Advantages of KNN:
 
 Conceptual simplicity: KNN is a supervised learning algorithm that is easy to understand and implement. It does not require assumptions about the distribution of the data or the relationship between the variables.
 
@@ -646,7 +646,7 @@ Non-parametric: KNN does not assume a specific form for the relationship between
 
 Intuitive interpretation: KNN predictions are based on nearest neighbors, allowing for intuitive interpretation of the results.
 
-Disadvantages of KNN:
+#### Disadvantages of KNN:
 
 Sensitivity to noise: KNN is sensitive to outliers and noise in the data, which can negatively affect its performance.
 
@@ -654,7 +654,7 @@ Computationally expensive: On large data sets, KNN can be computationally expens
 
 Need to tune hyperparameters: It is necessary to choose the optimal value of "k" (the number of neighbors) and an appropriate distance metric, which may require tuning and validation.
 
-Advantages of Linear and Multilinear Regression:
+#### Advantages of Linear and Multilinear Regression:
 
 Clear Interpretation: Linear and multilinear regression models provide coefficients that represent the quantitative relationship between the predictor variables and the target variable, making interpretation easier.
 
@@ -662,7 +662,7 @@ Computational efficiency: These models are typically more computationally effici
 
 Less sensitive to noise: Linear regression may be less sensitive to outliers and noise in the data compared to KNN.
 
-Disadvantages of Linear and Multilinear Regression:
+#### Disadvantages of Linear and Multilinear Regression:
 
 Restrictive assumptions: Linear and multilinear regression models assume a linear relationship between the predictor variables and the target variable, which may not be valid in many cases.
 
